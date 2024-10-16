@@ -26,4 +26,5 @@ export enum modalTypes {
   DELETE_SERVER = 'deleteServer',
   DELETE_CHANNEL = 'deleteChannel',
   EDIT_CHANNEL = 'editChannel',
+  MESSAGE_FILE = 'messageFile',
 }
