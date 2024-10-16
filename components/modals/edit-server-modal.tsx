@@ -1,7 +1,6 @@
 'use client';
 
 import axios from 'axios';
-import { useEffect, useState } from 'react';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -12,45 +11,54 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { FileUpload } from '@/components/file-upload';
+import { useModal } from '@/hooks/use-modal-store';
+import { modalTypes } from '@/types';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Server name is required' }),
   imageUrl: z.string().min(1, { message: 'Image URL is required' }),
 });
 
-export const InitialModal = () => {
-  const [isMounted, setIsMounted] = useState(false);
+export const EditServerModal = () => {
+  const { isOpen, onClose, type, data } = useModal();
   const router = useRouter();
+
+  const isModalOpen = isOpen && type === modalTypes.EDIT_SERVER;
+  const { server } = data;
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      imageUrl: '',
+      name: server?.name || '',
+      imageUrl: server?.imageUrl || '',
     },
   });
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return null;
-  }
+    if (server) {
+      form.setValue('name', server.name);
+      form.setValue('imageUrl', server.imageUrl);
+    }
+  }, [server, form]);
 
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await axios.post('/api/servers', values);
-      form.reset();
+      await axios.patch(`/api/servers/${server?.id}`, values);
       router.refresh();
-      window.location.reload();
+      onClose();
     } catch (error) {
       console.error(error);
     }
   };
 
+  const handleClosse = () => {
+    form.reset();
+    onClose();
+  };
+
   return (
-    <Dialog open={true}>
+    <Dialog open={isModalOpen} onOpenChange={handleClosse}>
       <DialogContent className='bg-white text-black p-0 overflow-hidden'>
         <DialogHeader className='pt-8 px-6'>
           <DialogTitle className='text-2xl text-center'>Customize your server</DialogTitle>
@@ -93,7 +101,7 @@ export const InitialModal = () => {
             </div>
             <DialogFooter className='bg-gray-100 px-6 py-4'>
               <Button disabled={isLoading} variant='primary'>
-                Create
+                Save
               </Button>
             </DialogFooter>
           </form>
