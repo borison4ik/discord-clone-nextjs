@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { UploadDropzone } from '@/lib/uploadthing';
 
 import '@uploadthing/react/styles.css';
+import { useState } from 'react';
 
 interface FileUploadProps {
   endpoint: 'messageFile' | 'serverImage';
@@ -13,7 +14,8 @@ interface FileUploadProps {
 }
 
 export const FileUpload = ({ endpoint, value, onChange }: FileUploadProps) => {
-  const fileType = value?.split('.').pop();
+  // const fileType = value?.split('.').pop();
+  const [fileType, setFileType] = useState('');
 
   if (value && fileType !== 'pdf') {
     return (
@@ -38,7 +40,7 @@ export const FileUpload = ({ endpoint, value, onChange }: FileUploadProps) => {
           target='_blank'
           rel='noreferrer noopen'
           className='ml-2 text-sm text-indigo-500 dark:text-indigo-400 hover:underline'>
-          {value}
+          Download
         </a>
         <button
           className='bg-rose-500 text-white p-1 rounded-full absolute -top-2 -right-2 shadow-sm'
@@ -54,6 +56,9 @@ export const FileUpload = ({ endpoint, value, onChange }: FileUploadProps) => {
     <UploadDropzone
       endpoint={endpoint}
       onClientUploadComplete={(res) => {
+        if (res?.[0].name.split('.').pop() === 'pdf') {
+          setFileType('pdf');
+        }
         onChange(res?.[0].url);
       }}
       onUploadError={(error: Error) => {
