@@ -1,1 +1,3 @@
-# Discord clone Next.js
+# discord-clone-nextjs
+
+Discord clone Next.js
