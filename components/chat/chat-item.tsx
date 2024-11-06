@@ -62,9 +62,36 @@ export const ChatItem = ({
     },
   });
 
+  const isLoading = form.formState.isSubmitting;
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    try {
+      const url = qs.stringifyUrl({
+        url: `${socketUrl}/${id}`,
+        query: socketQuery,
+      });
+
+      await axios.patch(url, values);
+      form.reset();
+      setIsEditing(false);
+    } catch (error) {
+      console.log(error);
+    }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsEditing(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     form.reset({ content });
@@ -142,6 +169,7 @@ export const ChatItem = ({
                       <FormControl>
                         <div className='relative w-full'>
                           <Input
+                            disabled={isLoading}
                             className='p-2 bg-zinc-200/90 dark:bg-zinc-700/50 border-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-zinc-600 dark:text-zinc-200'
                             autoFocus
                             placeholder='Edit your message'
@@ -152,7 +180,13 @@ export const ChatItem = ({
                     </FormItem>
                   )}
                 />
+                <Button disabled={isLoading} size='sm' variant='primary'>
+                  Save
+                </Button>
               </form>
+              <span className='text-[10px] mt-1 text-zinc-400'>
+                Press escape to cancel, enter to save
+              </span>
             </Form>
           )}
         </div>
